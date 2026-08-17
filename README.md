@@ -40,37 +40,36 @@ notion-setlist/
 └── README.md             # 프로젝트 안내 문서
 ```
 
-⚙️ 실행 방법
+---
 
-1. 환경변수 설정 (.env)
-   프로젝트 루트 폴더에 .env 파일을 생성하고 본인의 노션 API 정보를 입력합니다.
+## ⚙️ 실행 방법
 
+**1. 환경변수 설정 (`.env`)**
+프로젝트 루트 폴더에 `.env` 파일을 생성하고 본인의 노션 API 정보를 입력합니다.
+
+```text
 코드 스니펫
 NOTION*API_KEY=ntn_your_notion_api_key
 NOTION_DATABASE_ID=32자리*노션\_database_id
-PORT=3000 2. 패키지 설치 및 서버 실행
+PORT=3000
+```
+
+**2. 패키지 설치 및 서버 실행**
+
+```text
 Bash
 
 # 의존성 패키지 설치
-
 npm install
 
 # 서버 실행
+node server.js
+```
 
-node server.js 3. 접속
-브라우저에서 http://localhost:3000 또는 index.html 파일을 직접 열어 확인합니다.
+**3. 접속**
+브라우저에서 `http://localhost:3000` 또는 `index.html` 파일을 직접 열어 확인합니다.
 
-📝 Git 반영 (커밋 방법)
-Bash
-git add .
-git commit -m "Docs: README.md 프로젝트 안내 문서 추가"
-git push
-
----
-
-### GitHub 반영 방법
-
-VS Code 터미널에서 아래 명령어를 실행하여 GitHub에 반영해 주세요.
+## 📝 Git 반영 (커밋 방법)
 
 ```bash
 git add .
