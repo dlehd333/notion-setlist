@@ -49,7 +49,7 @@ notion-setlist/
 - 프로젝트 루트 폴더에 `.env` 파일을 생성하고 본인의 노션 API 정보를 입력합니다.
 
 ```code
-NOTION*API_KEY=ntn_your_notion_api_key
+NOTION_API_KEY=ntn_your_notion_api_key
 NOTION_DATABASE_ID=32자리*노션\_database_id
 PORT=3000
 ```
