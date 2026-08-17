@@ -46,7 +46,7 @@ notion-setlist/
 
 **1. 환경변수 설정 (`.env`)**
 
-프로젝트 루트 폴더에 `.env` 파일을 생성하고 본인의 노션 API 정보를 입력합니다.
+- 프로젝트 루트 폴더에 `.env` 파일을 생성하고 본인의 노션 API 정보를 입력합니다.
 
 ```text
 코드 스니펫
@@ -57,9 +57,7 @@ PORT=3000
 
 **2. 패키지 설치 및 서버 실행**
 
-```text
-Bash
-
+```Bash
 # 의존성 패키지 설치
 npm install
 
@@ -69,7 +67,7 @@ node server.js
 
 **3. 접속**
 
-브라우저에서 `http://localhost:3000` 또는 `index.html` 파일을 직접 열어 확인합니다.
+- 브라우저에서 `http://localhost:3000` 또는 `index.html` 파일을 직접 열어 확인합니다.
 
 ## 📝 Git 반영 (커밋 방법)
 
