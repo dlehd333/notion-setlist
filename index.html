@@ -2,193 +2,51 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>찬양 리스트 - 중복 검출 및 횟수순 정렬</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-    pre { background: #f4f4f4; padding: 12px; border-radius: 4px; overflow-x: auto; max-height: 150px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 30px; }
-    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
-    th { background-color: #f8f9fa; }
-    
-    /* 중복 의심 영역 강조 스타일 */
-    .warning-section { background-color: #fffbe6; border: 1px solid #ffe58f; padding: 16px; border-radius: 8px; margin-bottom: 24px; }
-    .warning-title { color: #d46b08; margin-top: 0; }
-    .badge { background: #ff4d4f; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; margin-right: 4px; display: inline-block; }
-  </style>
+  <title>찬양 리스트 - 중복/오타 검출 & 정렬</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🎵 찬양 데이터 가공 & 중복 검출</h1>
-  
-  <h2>1. 수신된 Raw JSON 데이터 원본</h2>
-  <pre id="raw-json">데이터 로딩 중...</pre>
+  <h1>🎵 찬양 데이터 관리 및 정제</h1>
 
-  <!-- 2. 중복 의심 곡 검출 섹션 -->
+  <!-- 1. 중복 & 오타 의심 곡 검출 섹션 -->
   <div class="warning-section">
-    <h2 class="warning-title">⚠️ 중복 의심 곡 목록 (<span id="duplicate-group-count">0</span>건)</h2>
-    <p style="font-size: 0.9em; color: #666; margin-bottom: 8px;">
-      * 띄어쓰기, 괄호, Key 표기가 달라 별개로 등록되었을 가능성이 높은 곡들입니다. 노션 DB에서 하나로 통일해 주면 더욱 정확해집니다.
+    <h2 class="warning-title">⚠️ 중복 & 오타 의심곡 목록 (<span id="duplicate-group-count">0</span>건)</h2>
+    <p style="font-size: 0.9em; color: #666; margin-bottom: 12px;">
+      * 띄어쓰기/괄호/Key 표기 차이(중복) 또는 오타/유사 곡명으로 추정되는 목록입니다. 노션 DB 정제 시 참고해 주세요.
     </p>
     <table>
       <thead>
         <tr>
-          <th>기준 순수 곡명</th>
-          <th>감지된 다형성 목록 (노션 입력값)</th>
-          <th>총 누적 횟수</th>
+          <th>구분</th>
+          <th>기준 곡명 / 의심 그룹</th>
+          <th>감지된 입력값 목록 (노션 데이터)</th>
+          <th>총 합계 횟수</th>
         </tr>
       </thead>
       <tbody id="duplicate-list"></tbody>
     </table>
   </div>
 
-  <!-- 3. 전체 정렬 목록 -->
-  <h2>3. 전체 정렬된 곡 목록 (총 <span id="unique-count">0</span>곡)</h2>
+  <!-- 2. 전체 곡 목록 및 정렬 토글 -->
+  <div class="list-header">
+    <h2>3. 전체 정렬된 곡 목록 (총 <span id="unique-count">0</span>곡)</h2>
+    <div class="btn-group">
+      <button id="btn-sort-count" class="sort-btn active" onclick="setSortMode('count')">🔥 횟수많은순 → 빠른날짜순</button>
+      <button id="btn-sort-date" class="sort-btn" onclick="setSortMode('date')">📅 빠른날짜순 → 횟수많은순</button>
+    </div>
+  </div>
+
   <table>
     <thead>
       <tr>
         <th>찬양 곡명</th>
-        <th>누적 횟수 (많은 순)</th>
-        <th>최신 연주일 (빠른 순)</th>
+        <th>누적 횟수</th>
+        <th>최신 연주일</th>
       </tr>
     </thead>
     <tbody id="aggregated-list"></tbody>
   </table>
 
-  <script>
-    let rawSetlists = [];
-    let aggregatedSongList = [];
-
-    // 문자열 정규화 (비교용 키 생성)
-    function normalizeTitle(title) {
-      return title
-        .replace(/\(.*?\)/g, '')   // (후렴), (369) 등 소괄호 내용 제거
-        .replace(/\[.*?\]/g, '')   // [설명] 대괄호 내용 제거
-        .replace(/[\->\_]/g, '')   // 화살표, 언더바 제거
-        .replace(/[a-ga-g#b]/gi, '') // A, B, C, D, E, F, G, Bb 등 Key 알파벳 제거
-        .replace(/\s+/g, '')       // 모든 공백(띄어쓰기) 제거
-        .trim();
-    }
-
-    async function loadData() {
-      try {
-        const response = await fetch('http://localhost:3000/api/setlists');
-        rawSetlists = await response.json();
-
-        // 1. Raw JSON 원본 출력
-        document.getElementById('raw-json').textContent = JSON.stringify(rawSetlists, null, 2);
-
-        // 2. 곡별 중복 제거 및 횟수/날짜 집계
-        const songMap = new Map();
-
-        rawSetlists.forEach(item => {
-          item.songs.forEach(songName => {
-            const trimmedSong = songName.trim();
-            if (!trimmedSong) return;
-
-            if (!songMap.has(trimmedSong)) {
-              songMap.set(trimmedSong, {
-                song: trimmedSong,
-                latestDate: item.date,
-                count: 1
-              });
-            } else {
-              const existing = songMap.get(trimmedSong);
-              existing.count += 1;
-              if (item.date > existing.latestDate) {
-                existing.latestDate = item.date;
-              }
-            }
-          });
-        });
-
-        aggregatedSongList = Array.from(songMap.values());
-
-        // 3. 변경된 다중 정렬 (1순위: 횟수 내림차순, 2순위: 날짜 오름차순)
-        aggregatedSongList.sort((a, b) => {
-          if (b.count !== a.count) {
-            return b.count - a.count; // 1순위: 횟수가 많은 순
-          }
-          return a.latestDate.localeCompare(b.latestDate); // 2순위: 날짜가 빠른(오래된) 순
-        });
-
-        // 4. 화면 출력
-        renderMainList(aggregatedSongList);
-
-        // 5. 중복 의심 항목 검출 및 출력
-        detectDuplicates(aggregatedSongList);
-
-      } catch (error) {
-        console.error(error);
-        document.getElementById('raw-json').textContent = '데이터를 불러오는 중 에러가 발생했습니다: ' + error.message;
-      }
-    }
-
-    // 중복 의심 분석 로직
-    function detectDuplicates(list) {
-      const normalizedGroup = new Map();
-
-      list.forEach(item => {
-        const normKey = normalizeTitle(item.song);
-        if (!normKey) return;
-
-        if (!normalizedGroup.has(normKey)) {
-          normalizedGroup.set(normKey, []);
-        }
-        normalizedGroup.get(normKey).push(item);
-      });
-
-      const duplicates = [];
-      normalizedGroup.forEach((items, normKey) => {
-        if (items.length > 1) {
-          const totalCount = items.reduce((sum, i) => sum + i.count, 0);
-          duplicates.push({
-            normKey: normKey,
-            variants: items.map(i => `${i.song} (${i.count}회)`),
-            totalCount: totalCount
-          });
-        }
-      });
-
-      renderDuplicateList(duplicates);
-    }
-
-    function renderDuplicateList(duplicates) {
-      const tbody = document.getElementById('duplicate-list');
-      document.getElementById('duplicate-group-count').textContent = duplicates.length;
-      tbody.innerHTML = '';
-
-      if (duplicates.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#8c8c8c;">감지된 중복 의심 곡이 없습니다. 데이터가 깔끔합니다!</td></tr>`;
-        return;
-      }
-
-      duplicates.forEach(group => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${group.normKey}</strong></td>
-          <td>${group.variants.map(v => `<span class="badge">${v}</span>`).join(' ')}</td>
-          <td>${group.totalCount}회</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderMainList(list) {
-      const tbody = document.getElementById('aggregated-list');
-      document.getElementById('unique-count').textContent = list.length;
-      tbody.innerHTML = '';
-
-      list.forEach(entry => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${entry.song}</td>
-          <td>${entry.count}회</td>
-          <td>${entry.latestDate}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    loadData();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
