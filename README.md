@@ -29,7 +29,7 @@
 
 ## 📂 프로젝트 구조
 
-````text
+```text
 notion-setlist/
 ├── .env                  # API 키 및 DB ID 설정 (보안 파일, .gitignore 처리)
 ├── .gitignore            # Git 업로드 제외 목록 (.env, node_modules)
@@ -38,23 +38,26 @@ notion-setlist/
 ├── style.css             # 웹 스타일시트
 ├── script.js            # 데이터 파싱, 정렬 및 오타 검출 로직
 └── README.md             # 프로젝트 안내 문서
+```
 
 ⚙️ 실행 방법
+
 1. 환경변수 설정 (.env)
-프로젝트 루트 폴더에 .env 파일을 생성하고 본인의 노션 API 정보를 입력합니다.
+   프로젝트 루트 폴더에 .env 파일을 생성하고 본인의 노션 API 정보를 입력합니다.
 
 코드 스니펫
-NOTION_API_KEY=ntn_your_notion_api_key
-NOTION_DATABASE_ID=32자리_노션_database_id
-PORT=3000
-2. 패키지 설치 및 서버 실행
+NOTION*API_KEY=ntn_your_notion_api_key
+NOTION_DATABASE_ID=32자리*노션\_database_id
+PORT=3000 2. 패키지 설치 및 서버 실행
 Bash
+
 # 의존성 패키지 설치
+
 npm install
 
 # 서버 실행
-node server.js
-3. 접속
+
+node server.js 3. 접속
 브라우저에서 http://localhost:3000 또는 index.html 파일을 직접 열어 확인합니다.
 
 📝 Git 반영 (커밋 방법)
@@ -73,4 +76,4 @@ VS Code 터미널에서 아래 명령어를 실행하여 GitHub에 반영해 주
 git add .
 git commit -m "Docs: README.md 추가"
 git push
-````
+```
