@@ -38,13 +38,25 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     // 노션 데이터 파싱 로직
-    const setlists = data.results.map(page => {
+const setlists = data.results.map(page => {
       const props = page.properties;
       const songs = [];
       
       Object.keys(props).forEach(key => {
-        if (key.startsWith('곡')) {
-          const val = props[key]?.rich_text?.[0]?.plain_text || props[key]?.title?.[0]?.plain_text;
+        // 컬럼 이름에 '찬양'이라는 글자가 포함된 모든 속성을 탐색 (예: 찬양1, 찬양 1, 찬양곡 등)
+        if (key.includes('찬양')) {
+          const propData = props[key];
+          let val = '';
+
+          // 1. 텍스트(Rich Text) 형식일 경우
+          if (propData.type === 'rich_text' && propData.rich_text?.length > 0) {
+            val = propData.rich_text[0].plain_text;
+          } 
+          // 2. 제목(Title) 형식일 경우
+          else if (propData.type === 'title' && propData.title?.length > 0) {
+            val = propData.title[0].plain_text;
+          }
+
           if (val) songs.push(val);
         }
       });
