@@ -40,7 +40,7 @@ function getEditDistance(a, b) {
 
 async function loadData() {
   try {
-    const response = await fetch('http://localhost:3000/api/setlists');
+    const response = await fetch('/api/setlists');
     rawSetlists = await response.json();
 
     const songMap = new Map();
