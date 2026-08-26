@@ -41,11 +41,22 @@ function getEditDistance(a, b) {
 async function loadData() {
   try {
     const response = await fetch('/api/setlists');
+    
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || `서버 응답 에러 (${response.status})`);
+    }
+
     rawSetlists = await response.json();
+
+    if (!Array.isArray(rawSetlists) || rawSetlists.length === 0) {
+      console.warn('불러온 노션 데이터가 비어있습니다.');
+    }
 
     const songMap = new Map();
 
     rawSetlists.forEach(item => {
+      if (!item.songs) return;
       item.songs.forEach(songName => {
         const trimmedSong = songName.trim();
         if (!trimmedSong) return;
@@ -73,6 +84,10 @@ async function loadData() {
 
   } catch (error) {
     console.error('데이터 로딩 오류:', error);
+    const tbody = document.getElementById('aggregated-list');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">데이터 로딩 실패: ${error.message}</td></tr>`;
+    }
   }
 }
 
